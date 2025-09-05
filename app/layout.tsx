@@ -4,7 +4,7 @@ import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
-import { AuthProvider } from "@/contexts/auth-context"
+import { NextAuthProvider } from "@/components/providers/next-auth-provider"
 
 export const metadata: Metadata = {
   title: "AI Proposal Writer - Create Winning Proposals with AI",
@@ -28,7 +28,7 @@ export default function RootLayout({
           disableTransitionOnChange={true}
           storageKey="ai-proposal-theme"
         >
-          <AuthProvider>{children}</AuthProvider>
+          <NextAuthProvider>{children}</NextAuthProvider>
         </ThemeProvider>
       </body>
     </html>

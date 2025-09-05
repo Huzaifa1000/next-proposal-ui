@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
 import Link from "next/link"
 import { ArrowLeft, Mail, CheckCircle } from "lucide-react"
 
@@ -12,16 +11,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { forgotPasswordSchema, type ForgotPasswordData } from "@/lib/validations/auth"
 
-const forgotPasswordSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-})
-
-type ForgotPasswordForm = z.infer<typeof forgotPasswordSchema>
+type ForgotPasswordForm = ForgotPasswordData
 
 export default function ForgotPasswordPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [developmentToken, setDevelopmentToken] = useState<string | null>(null)
 
   const form = useForm<ForgotPasswordForm>({
     resolver: zodResolver(forgotPasswordSchema),
@@ -32,11 +29,36 @@ export default function ForgotPasswordPage() {
 
   const onSubmit = async (data: ForgotPasswordForm) => {
     setIsLoading(true)
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-    console.log("Forgot password data:", data)
-    setIsLoading(false)
-    setIsSubmitted(true)
+    
+    try {
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setIsSubmitted(true);
+        // Store development token for demo purposes
+        if (result.developmentToken) {
+          setDevelopmentToken(result.developmentToken);
+        }
+      } else {
+        form.setError("root", {
+          message: result.error || "Something went wrong. Please try again.",
+        });
+      }
+    } catch (error) {
+      form.setError("root", { 
+        message: "Request failed. Please try again." 
+      });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   if (isSubmitted) {
@@ -70,11 +92,20 @@ export default function ForgotPasswordPage() {
             </CardHeader>
 
             <CardContent className="space-y-6">
+              {developmentToken && (
+                <div className="p-3 bg-muted/50 rounded-lg border">
+                  <p className="text-sm text-muted-foreground text-center">
+                    <strong>Development Token (for testing):</strong>
+                    <br />
+                    <code className="text-xs bg-background px-2 py-1 rounded">{developmentToken}</code>
+                  </p>
+                </div>
+              )}
               <div className="text-center">
                 <p className="text-sm text-muted-foreground mb-4">
                   Didn't receive the email? Check your spam folder or try again.
                 </p>
-                <Button variant="outline" onClick={() => setIsSubmitted(false)} className="w-full">
+                <Button variant="outline" onClick={() => { setIsSubmitted(false); setDevelopmentToken(null); }} className="w-full">
                   Try again
                 </Button>
               </div>
@@ -125,6 +156,11 @@ export default function ForgotPasswordPage() {
           <CardContent>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                {form.formState.errors.root && (
+                  <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                    <p className="text-sm text-destructive">{form.formState.errors.root.message}</p>
+                  </div>
+                )}
                 <FormField
                   control={form.control}
                   name="email"
