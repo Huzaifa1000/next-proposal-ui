@@ -1,32 +1,44 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { signIn } from "next-auth/react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { FileText, ArrowLeft, Eye, EyeOff } from "lucide-react"
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { FileText, ArrowLeft, Eye, EyeOff } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Form, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Checkbox } from "@/components/ui/checkbox"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { loginSchema, type LoginData } from "@/lib/validations/auth"
-
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { loginSchema, type LoginData } from "@/lib/validations/auth";
+import { z } from "zod";
 type LoginForm = LoginData & {
-  rememberMe: boolean
-}
+  rememberMe: boolean;
+};
 
 const extendedLoginSchema = loginSchema.extend({
   rememberMe: z.boolean().default(false),
-})
+});
 
 export default function LoginPage() {
-  const [isLoading, setIsLoading] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
-  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(extendedLoginSchema),
@@ -35,41 +47,44 @@ export default function LoginPage() {
       password: "",
       rememberMe: false,
     },
-  })
+  });
 
   const onSubmit = async (data: LoginForm) => {
-    setIsLoading(true)
-    
+    setIsLoading(true);
+
     try {
-      const result = await signIn('credentials', {
+      const result = await signIn("credentials", {
         email: data.email,
         password: data.password,
         redirect: false,
-      })
+      });
 
       if (result?.error) {
         form.setError("root", {
           message: "Invalid credentials. Please check your email and password.",
-        })
+        });
       } else if (result?.ok) {
-        router.push('/dashboard')
-        router.refresh()
+        router.push("/dashboard");
+        router.refresh();
       }
     } catch (error) {
-      form.setError("root", { 
-        message: "Login failed. Please try again." 
-      })
+      form.setError("root", {
+        message: "Login failed. Please try again.",
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
-          <Link href="/" className="flex items-center text-muted-foreground hover:text-foreground transition-colors">
+          <Link
+            href="/"
+            className="flex items-center text-muted-foreground hover:text-foreground transition-colors"
+          >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to home
           </Link>
@@ -84,18 +99,23 @@ export default function LoginPage() {
             <div>
               <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
               <CardDescription className="text-base mt-2">
-                Sign in to your ProposalAI account to continue creating winning proposals
+                Sign in to your ProposalAI account to continue creating winning
+                proposals
               </CardDescription>
             </div>
           </CardHeader>
 
           <CardContent>
-
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-6"
+              >
                 {form.formState.errors.root && (
                   <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
-                    <p className="text-sm text-destructive">{form.formState.errors.root.message}</p>
+                    <p className="text-sm text-destructive">
+                      {form.formState.errors.root.message}
+                    </p>
                   </div>
                 )}
 
@@ -157,9 +177,14 @@ export default function LoginPage() {
                     name="rememberMe"
                     render={({ field }) => (
                       <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
                         <div className="space-y-1 leading-none">
-                          <FormLabel className="text-sm font-normal">Remember me</FormLabel>
+                          <FormLabel className="text-sm font-normal">
+                            Remember me
+                          </FormLabel>
                         </div>
                       </FormItem>
                     )}
@@ -173,7 +198,12 @@ export default function LoginPage() {
                   </Link>
                 </div>
 
-                <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
+                <Button
+                  type="submit"
+                  className="w-full"
+                  size="lg"
+                  disabled={isLoading}
+                >
                   {isLoading ? "Signing in..." : "Sign in"}
                 </Button>
               </form>
@@ -182,7 +212,10 @@ export default function LoginPage() {
             <div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">
                 {"Don't have an account? "}
-                <Link href="/signup" className="text-primary hover:text-primary/80 font-medium transition-colors">
+                <Link
+                  href="/signup"
+                  className="text-primary hover:text-primary/80 font-medium transition-colors"
+                >
                   Sign up for free
                 </Link>
               </p>
@@ -191,5 +224,5 @@ export default function LoginPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }
